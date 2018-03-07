@@ -1,0 +1,355 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>.PUZ File Format Specification</title>
+  </head>
+
+<STYLE TYPE="text/css">
+BODY { font-family: Verdana,Trebuchet,"Trebuchet MS",Arial,Helvetica,sans; }
+
+.b {	
+	background-color: #e8e8d0; 
+	width: 45em; 
+	align: center; 
+	text-align: justify; 
+	border: grey solid 1px;
+	padding-left: 1em;
+	padding-right: 1em;
+	display: table;
+	margin-left: auto;
+	margin-right: auto;
+    }
+
+h1, h2 {
+	background-color: #404080;
+	color: white;
+	text-align: center;
+	text-decoration: none;
+	font-weight: normal;
+	padding-right: 10em;
+	border: 1px solid black;
+}
+
+table {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+td {
+    border: 1px dashed black;
+    padding: .25em .5em;
+}
+
+p {
+    line-height: 150%;
+    margin-left: 2em;
+}
+
+</STYLE>
+
+<BODY BGCOLOR="#c0c0c0" LINKS="#404080" VLINK="#4040a0">
+    <div class="b">
+    <h1>.PUZ File Format Specification</h1>
+
+      <p>
+	PUZ is a file format commonly used by commercial software for
+	crossword puzzles.  There is, to my knowledge, no other
+	documentation of the format available online.  This page (and
+	the implementation) is the result of a few weeks' reverse
+	engineering work, based in part on work started by Evan
+	Martin.
+      </p>
+
+      <p>As it currently stands, the documentation is far from
+      complete.  However, it is complete enough to read and write
+      basic crossword puzzles in the format, such that you may
+      interoperate with the common crossword applications.  I have no
+      real financial interest in this, it was just a fun hack and
+      allows me to produce crossword puzzles for friends to play.
+      </p>
+
+      <p>There is an GPLed implementation in C available: <a
+      href="libpuz-latest.tar.gz">libpuz-latest.tar.gz</a></p>
+
+      <p>I welcome any input you may have after reading this.  You can
+      contact me via email at <a
+      href="mailto:josh@joshisanerd.com">josh at joshisanerd.com</a>.
+      Please send me any new information you figure out, corrections
+      or errors you find, or general comments on the library below.
+      </p>
+
+    <h2>File Format</h2>
+    <table>
+      <thead>
+	<tr><th>Name</th><th>Offset</th><th>End</th><th>Len</th><th>Contents</th></tr>
+      </thead>
+      <tbody>
+
+	<tr><td>Checksum</td>
+	  <td>0x00</td><td>0x01</td><td>0x2</td>
+	  <td>Little-Endian short of the overall file checksum</td>
+	</tr>
+
+	<tr><td>File Magic</td>
+	  <td>0x02</td><td>0x0D</td><td>0xC</td>
+	  <td>NUL-terminated string, <tt>4143 524f 5353 2644 4f57 4e00</tt></td>
+	</tr>
+
+	<tr><td>CIB Checksum</td>
+	  <td>0x0E</td><td>0x0F</td><td>0x2</td>
+	  <td>Little-Endian checksum of the puzzle's CIB</td>
+	</tr>
+
+	<tr><td>Masked Low Checksums</td>
+	  <td>0x10</td><td>0x13</td><td>0x4</td>
+	  <td>A set of checksums, XOR-masked against a magic string.</td>
+	</tr>
+	<tr><td>Masked High Checksums</td>
+	  <td>0x14</td><td>0x17</td><td>0x4</td>
+	  <td>A set of checksums, XOR-masked against a magic string.</td>
+	</tr>
+	<tr><td>Version String(?)</td>
+	  <td>0x18</td><td>0x1B</td><td>0x4</td>
+	  <td>NUL-terminated string, "1.2\0"</td>
+	</tr>
+
+	<tr><td>Reserved1C(?)</td>
+	  <td>0x1C</td><td>0x1D</td><td>0x2</td>
+	  <td>In many files, this is uninitialized memory</td>
+	</tr>
+
+	<tr><td>Unknown</td>
+	  <td>0x1E</td><td>0x1F</td><td>0x2</td>
+	  <td>In all files, this is set to 0x0000(?)</td>
+	</tr>
+
+	<tr><td>Reserved20(?)</td>
+	  <td>0x20</td><td>0x2B</td><td>0xB</td>
+	  <td>In files where Reserved1C is garbage, this is garbage too.</td>
+	</tr>
+
+
+	<tr><td>BIC</td>
+	  <td>0x2C</td><td>0x33</td><td>0x8</td>
+	  <td>I've named this range the Board Initialization Checksum
+	  region.  It contains the vitals of the puzzle, and is used
+	  to initialize the overall checksum of the file.<br/>
+	      <br/>
+	      Note that this is not a "Real" value in the file
+	  </td>
+	</tr>
+
+	<tr><td>Width</td>
+	  <td>0x2C</td><td>0x2C</td><td>0x1</td>
+	  <td>The width of the board as a byte</td>
+	</tr>
+
+
+	<tr><td>Height</td>
+	  <td>0x2D</td><td>0x2D</td><td>0x1</td>
+	  <td>The height of the board as a byte</td>
+	</tr>
+
+
+	<tr><td># of Clues</td>
+	  <td>0x2E</td><td>0x2F</td><td>0x2</td>
+	  <td>Little-Endian short of the number of clues for this board</td>
+	</tr>
+
+	<tr><td>Unknown Bitmask</td>
+	  <td>0x30</td><td>0x31</td><td>0x2</td>
+	  <td>Little-Endian short containing a bitmask.  Operations unknown.</td>
+	</tr>
+
+	<tr><td>Unknown32</td>
+	  <td>0x32</td><td>0x33</td><td>0x2</td>
+	  <td>Unknown short or two bytes...</td>
+	</tr>
+
+	<tr><td>Solution</td>
+	  <td>0x34</td><td>0x34+<br/>w&times;h-1</td><td>w&times;h</td>
+
+	  <td>A flat string of bytes, one for each cell in the board.
+	  Rasters from the top left corner across the board, then to
+	  the second row, etc.  Non-playable (ie: black) cells are
+	  denoted by '.'</td>
+	</tr>
+
+	<tr><td>Grid</td>
+	  <td>0x34+<br/>w&times;h</td><td>0x34+<br/>2(w&times;h)-1</td><td>w&times;h</td>
+
+	  <td>A flat string of bytes, one for each cell in the board.
+	    Rasters from the top left corner across the board, then to
+	    the second row, etc.  Non-playable (ie: black) cells are
+	    denoted by '.'<br/>
+	    <br/>
+
+	    If a cell is empty, it gets a '-'; otherwise the player's
+	    guess is stored in the cell.	    
+	  </td>
+	</tr>
+
+	<tr><td>Title</td>
+	  <td>0x34+<br/>2(w&times;h)</td><td>??</td><td>Delimited</td>
+	  <td>A NUL-terminated string containing the title of the puzzle.</td>
+	</tr>
+	<tr><td>Author</td>
+	  <td>??</td><td>??</td><td>Delimited</td>
+	  <td>A NUL-terminated string containing the author of the puzzle.</td>
+	</tr>
+	<tr><td>Copyright</td>
+	  <td>??</td><td>??</td><td>Delimited</td>
+	  <td>A NUL-terminated string, containing the copyright statement for the puzzle.</td>
+	</tr>
+
+
+	<tr><td>Clues</td>
+	  <td>??</td><td>??</td><td>Delimited</td>
+
+	  <td>A string #-of-clues NUL-terminated strings, one right
+	  after the other.  </td>
+
+	</tr>
+
+	<tr><td>Notes</td>
+	  <td>??</td><td>EOF</td><td>??</td>
+
+	  <td>Exact format unknown at present.  They're there.  They
+	  are NUL-terminated; if the user has opened the Notes pane
+	  without entering any, you get an empty string.  This looks
+	  like an extra NUL.</td>
+
+	</tr>
+      </tbody>
+    </table>
+
+    <h2><a name="cksum_routine">Checksumming Routine</a></h2>
+
+    <p>The checksumming routine used in PUZ is a variant of CRC-16.  To
+    checksum a region of memory, the following is used:
+
+<pre>
+unsigned short cksum_region(unsigned char *base, int len, unsigned short cksum) {
+  int i;
+
+  for(i = 0; i &lt; len; i++) {
+    if(cksum &amp; 0x0001)
+      cksum = (cksum &gt;&gt; 1) + 0x8000;
+    else
+      cksum = cksum &gt;&gt; 1;
+
+    cksum += *(base+i);
+  }
+  
+    return cksum;
+}
+</pre></p>
+
+    <h2><a name="cksum_file">Calculating primary PUZ checksum</a></h2>
+
+      <p>To calculuate the primary checksum, you'll need to do the following:
+      <pre>
+	cksum = cksum_region(CIB, 0x08, 0x0000);
+	cksum = cksum_region(solution, w*h, cksum);
+	cksum = cksum_region(grid, w*h, cksum);
+	cksum = cksum_region(title, strlen(title)+1, cksum);
+	cksum = cksum_region(author, strlen(author)+1, cksum);
+	cksum = cksum_region(copyright, strlen(copyright)+1, cksum);
+	
+	for(i = 0; i &lt; num_of_clues; i++)
+	  cksum = cksum_region(clue[i], strlen(clue[i]), cksum)
+      </pre>
+    </p>
+
+    <h2><a name="cksum_cib">Calculating CIB checksum</a></h2>
+    <p>The CIB checksum is simply:
+      <pre>
+	cksum_cib = cksum_region(CIB, 0x08, 0x0000);
+      </pre>
+    </p>
+
+    <h2><a name="cksum_masked">Calculating the Masked Checksums</a></h2>
+
+    <p>The values from 0x10-0x17 are a real pain to generate.  They
+    are the result of masking off and XORing four checksums; 0x10-0x13
+    are the low bytes, while 0x14-0x17 are the high bytes.</p>
+
+    <p>To calculate these bytes, we must first calculate four checksums:
+    <ol>
+      <li>CIB Checksum with IV 0x0000:<br/>
+	<tt>c_cib = cksum_region(CIB, 0x08, 0x0000)</tt></li>
+      <li>Solution Checksum with IV 0x0000:<br/>
+	<tt>c_sol = cksum_region(solution, w*h, 0x0000)</tt></li>
+      <li>Grid Checksum with IV 0x0000:<br/>
+	<tt>c_grid = cksum_region(grid, w*h, 0x0000)</tt></li>
+      <li>A partial board checksum with IV 0x0000:<br/>
+	<tt>
+	  c_part = cksum_region(title, strlen(title)+1, 0x0000);<br/>
+	  c_part = cksum_region(author, strlen(author)+1, c_part);<br/>
+	  c_part = cksum_region(copyright, strlen(copyright)+1, c_part);<br/>
+	  for(i = 0; i &lt; n_clues; i++)<br/>
+	  &nbsp; c_part = cksum_region(clue[i], strlen(clue[i]), c_part);<br/></tt>
+    </ol>
+  </p>
+
+    <p>Once these four checksums are obtained, they're stuffed into
+    the file thusly:
+      <pre>
+	file[0x10] = 0x49 ^ (c_cib &amp; 0xFF);
+	file[0x11] = 0x43 ^ (c_sol &amp; 0xFF);
+	file[0x12] = 0x48 ^ (c_grid &amp; 0xFF);
+	file[0x13] = 0x45 ^ (c_part &amp; 0xFF);
+
+	file[0x14] = 0x41 ^ ((c_cib &amp; 0xFF00) >> 8);
+	file[0x15] = 0x54 ^ ((c_sol &amp; 0xFF00) >> 8);
+	file[0x16] = 0x45 ^ ((c_grid &amp; 0xFF00) >> 8);
+	file[0x17] = 0x44 ^ ((c_part &amp; 0xFF00) >> 8);
+      </pre>
+    </p>
+
+      <h2>Encodings</h2>
+
+      <p>All shorts are in little-endian format.  Strings appear
+      to be in Windows-1252 or ISO 8859-1.  It's really hard to tell
+      exactly which encoding they use.</p>
+
+      <h2>Reference File</h2> 
+
+      <p>A reference .PUZ is helpful if you're working on an
+      implementation.  I've created <a href="jbm.puz">a Reference PUZ
+      File</a>, so we all have common ground to start from.</p>
+
+      <h2>Unknowns</h2>
+      <p>The following are unknown.  I welcome suggestions or contributions!
+	<ul>
+	<li><b>Bitmask meanings</b>: What bits in the 0x30 bitmask matter, and what do they do?</li>
+	<li><b>Notes Format</b>: How are notes laid out in the file?</li>
+	<li><b>Version String</b>: What other values are available?</li>
+	<li><b>Reserved1C and 20</b>: Are these ever non-zero and non-garbage?</li>
+	<li><b>Unknown1E</b>: What are possible values for the short at 0x1E?  What do they mean?</li>
+	<li><b>Unknown32</b>: What are possible values for the short at 0x32?  What do they mean?</li>
+      </ul>
+    </p>
+
+      <h2>Implementation</h2> 
+
+      <p>I've (finally) completed the first draft of a GPL'd library
+      implementing the PUZ file format.  It's a plain C library with a
+      sample application.  It compiles and works in both Linux and
+      Cygwin; other Unices should work as well.</p>
+
+      <p>You can download the latest version at <a
+      href="libpuz-latest.tar.gz">libpuz-latest.tar.gz</a>.</p>
+
+    <hr>
+
+      <p><address><a href="http://www.joshisanerd.com/">Josh Myer</a></address></p>
+      <p><address>Thanks to Evan Martin for his feedback on this document.</address></p>
+
+<!-- Created: Mon Jan  2 18:34:49 EST 2006 -->
+<!-- hhmts start -->
+Last modified: Wed Jan  4 21:00:31 EST 2006
+<!-- hhmts end -->
+</div>
+  </body>
+</html>

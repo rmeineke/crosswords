@@ -1,0 +1,12 @@
+f   short_note.puz   special puzzles/ 
+robertm@Sys76:~/Desktop/x$ ./x.pl s
+short_note.pdf   short_note.puz   special puzzles/ 
+robertm@Sys76:~/Desktop/x$ ./x.pl special\ puzzles/sunday.puz >sunday_out.txt
+"my" variable $height masks earlier declaration in same scope at ./x.pl line 157.
+Assuming NOT a POSIX class since there must be a starting ':' in regex; marked by <-- HERE in m/[[ <-- HERE BLANK]]/ at ./x.pl line 1044.
+Assuming NOT a POSIX class since the name must be all lowercase letters in regex; marked by <-- HERE in m/[[BLANK <-- HERE ]]/ at ./x.pl line 1044.
+Assuming NOT a POSIX class since there is no terminating ':' in regex; marked by <-- HERE in m/[[BLANK <-- HERE ]]/ at ./x.pl line 1044.
+Assuming NOT a POSIX class since there must be a starting ':' in regex; marked by <-- HERE in m/[[ <-- HERE BLANK]]/ at ./x.pl line 1072.
+Assuming NOT a POSIX class since the name must be all lowercase letters in regex; marked by <-- HERE in m/[[BLANK <-- HERE ]]/ at ./x.pl line 1072.
+Assuming NOT a POSIX class since there is no terminating ':' in regex; marked by <-- HERE in m/[[BLANK <-- HERE ]]/ at ./x.pl line 1072.
+robertm@Sys76:~/Desktop/x$ 

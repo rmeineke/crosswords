@@ -1,0 +1,33 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_PREREQ(2.59)
+AC_INIT(libpuz, 0.0.1, josh@joshisanerd.com)
+AM_INIT_AUTOMAKE(libpuz, 0.0.1, josh@joshisanerd.com)
+AC_CONFIG_SRCDIR([include/puz.h])
+AC_CONFIG_HEADER([include/libpuz_config.h])
+
+# Checks for programs.
+AC_PROG_CC
+AM_PROG_LIBTOOL
+
+# Checks for libraries.
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([stdlib.h string.h unistd.h])
+
+dnl AM_CONFIG_HEADER(include/libpuz_config.h)
+dnl AC_CONFIG_FILES([Makefile])
+
+# Checks for typedefs, structures, and compiler characteristics.
+
+# Checks for library functions.
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([strdup strndup])
+AC_OUTPUT([
+	Makefile
+	include/Makefile
+	src/Makefile
+	utils/Makefile
+])

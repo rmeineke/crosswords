@@ -1,0 +1,116 @@
+2006-01-04 20:32  jbm
+
+	* utils/readpuz.c: fixup since O_BINARY is not defined on Linux
+
+2006-01-04 20:29  jbm
+
+	* Makefile.am, configure.in, utils/Makefile.am: some dist fixups:
+	  add utils/ to build, add doc/ to dist
+
+2006-01-04 19:49  jbm
+
+	* include/puz.h, src/cksum.c, src/load.c, src/puzzle.c, src/save.c:
+	  silence GCC4 signedness warnings through macro abuse
+
+2006-01-04 19:10  jbm
+
+	* include/.cvsignore, src/.cvsignore: remove directories from
+	  {src,include}/.cvsignore.  Whoops.
+
+2006-01-04 19:09  jbm
+
+	* include/.cvsignore, src/.cvsignore: update
+	  {src,include}/.cvsignore
+
+2006-01-04 19:07  jbm
+
+	* .cvsignore, include/libpuz_config.h.in: added libpuz_config.h.in
+
+2006-01-04 19:05  jbm
+
+	* AUTHORS, COPYING, ChangeLog, INSTALL, NEWS, README: add basic GNU
+	  files
+
+2006-01-04 18:46  jbm
+
+	* include/puz.h, src/cksum.c, src/load.c, src/puzzle.c, src/save.c:
+	  further cleanups, add copyright statement
+
+2006-01-04 18:35  jbm
+
+	* include/puz.h, src/cksum.c, src/load.c, src/puzzle.c, src/save.c,
+	  utils/readpuz.c: Add comments, documentation, and add ability to
+	  explicitly choose which file type to use.
+
+2006-01-04 17:05  jbm
+
+	* include/puz.h, src/cksum.c, src/load.c, src/puzzle.c, src/save.c:
+	  add isspace prototype; move puz_size from save.c to puzzle.c add
+	  puz_size prototype fixups in load.c: - clear up unsigned/signed
+	  char mismatch warning - unhose linked list code
+
+2006-01-04 05:19  jbm
+
+	* include/puz.h, src/Makefile.am, src/cksum.c, src/load.c,
+	  src/puzzle.c, src/save.c: can load text files now, definitely
+	  needs some more work.  roughly working, checkpointing for the
+	  night
+
+2006-01-04 05:18  jbm
+
+	* utils/readpuz.c: readpuz now works for both binary and text, can
+	  transcode to binary
+
+2006-01-04 00:36  jbm
+
+	* include/puz.h, src/Makefile.am, src/cksum.c, src/load.c,
+	  src/puzzle.c, utils/readpuz.c: cleanup and establish API
+
+2006-01-03 23:29  jbm
+
+	* include/Makefile.am, include/puz.h, src/cksum.c: Attempt to make
+	  the cksum API sane
+
+2006-01-03 23:28  jbm
+
+	* doc/puz_spec.html: Minor: Rename one section of the page
+
+2006-01-03 23:27  jbm
+
+	* utils/readpuz.c: add readpuz.c util
+
+2006-01-03 00:24  jbm
+
+	* doc/puz_spec.html: Updates to doc
+
+2006-01-02 23:09  jbm
+
+	* configure.in: One step closer to functioning auto* scripts
+
+2006-01-02 22:48  jbm
+
+	* .cvsignore, configure.in: Fixup configure.in, add cvsignores
+
+2006-01-02 22:47  jbm
+
+	* Makefile.am, include/Makefile.am, src/Makefile.am: Added
+	  rudimentary Makefile.am
+
+2006-01-02 22:38  jbm
+
+	* .cvsignore: add .cvsignore
+
+2006-01-02 22:37  jbm
+
+	* configure.in: update configure.in per autoscan recommendations
+
+2006-01-02 22:27  jbm
+
+	* configure.in, gen.sh, doc/jbm.puz, doc/puz_spec.html,
+	  include/puz.h, src/cksum.c, src/load.c: Initial revision
+
+2006-01-02 22:27  jbm
+
+	* configure.in, gen.sh, doc/jbm.puz, doc/puz_spec.html,
+	  include/puz.h, src/cksum.c, src/load.c: initial import
+

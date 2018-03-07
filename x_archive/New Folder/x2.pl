@@ -1,0 +1,242 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Carp;
+use POSIX;
+
+use Crosswords qw(get_output_file_name check_for_check_string
+    get_day_from
+    get_sunday_theme
+    get_sunday_title
+    get_puzzle_width
+    get_puzzle_height
+    get_number_of_clues
+);
+
+use English qw( -no_match_vars );
+
+use Readonly;
+
+use Benchmark;
+
+use Getopt::Long;
+
+our $VERSION = 0.00001;
+
+my $DEBUG = 0;
+my $SOLVE = 0;
+my $HINT  = 0;
+GetOptions(
+    's' => \$SOLVE,
+    'd' => \$DEBUG,
+    'h' => \$HINT
+) or croak "Incorrect usage!\n";
+
+# check to see if a filename argument
+# was supplied
+if ( $#ARGV != 0 ) {
+    print "Usage:\tx.pl filename\n" or croak;
+    print "\tx.pl Aug2613.puz\n\n"  or croak;
+    exit 0;
+}
+
+my $file = $ARGV[0];
+
+#check for existence of the file
+if ( !-e $file ) {
+    print "File ($file) not found\n" or croak;
+    exit 0;
+}
+
+my $file_out = q{};
+if ( $file =~ m{.*[.]puz}ixms ) {
+    $file_out = get_output_file_name($file);
+}
+else {
+    print "File ($file) may not be a .puz file\n" or croak;
+    exit 0;
+}
+unlink $file_out;
+
+#print $file_out, "\n" or croak;
+my $document = get_document($file);
+open my $IN, '<', $file or croak;
+binmode $IN;
+my $document = do {
+    local $INPUT_RECORD_SEPARATOR = undef;
+    <$IN>;
+};
+close $IN or croak;
+
+print length $document, " == document length\n" or croak;
+my $document_length = length $document;
+
+my $check_str = check_for_check_string($document);
+if ( !$check_str ) {
+    print "\nThere seems to be an issue with\n" or croak;
+    print "this file .... \n\n\n"               or croak;
+    exit 0;
+}
+
+my $width = get_puzzle_width($document);
+#print $width, " == width \n" or croak;
+
+my $height = get_puzzle_height($document);
+#print $height, " == height \n" or croak;
+
+my $squares = $width * $height;
+#print $squares, " == squares\n" or croak;
+
+my $num_clues = get_number_of_clues($document);
+#print $num_clues, " == num_clues\n" or croak;
+exit;
+
+
+
+__END__
+$offset++;
+my $num_clues = substr $document, $offset, 1;
+$offset++;
+$num_clues .= substr $document, $offset, 1;
+$num_clues = ord $num_clues;
+
+print $num_clues, " == num_clues\n" or croak;
+
+
+$offset = 52;
+my $solution;
+if ($SOLVE) {
+    $solution = substr $document, $offset, $squares;
+    if ($DEBUG) {
+        print "============ SOLUTION ===================\n" or croak;
+        print $solution, "\n" or croak;
+        my $j = 0;
+        for my $i (0 .. $height) {
+            print substr $solution, $j, $width or croak;
+            print "\n" or croak;
+            $j += $width;
+        }
+        print "============ SOLUTION ===================\n" or croak;
+    }
+}
+
+
+$offset = $offset + $squares;
+my $grid = substr $document, $offset, $squares;
+
+if ($DEBUG) {
+    print "\nHere is the grid w/ no formatting\n" or croak;
+    print $grid, "\n" or croak;
+}
+
+if ($DEBUG) {
+    print "\nHere is the grid formatted\n" or croak;
+    my $j = 0;
+    for my $i (0 .. $height) {
+        print substr $grid, $j, $width or croak;
+        print "\n" or croak;
+        $j += $width;
+    }
+}
+
+
+#lay the solution string out in a matrix
+my @matrix;
+
+#print $width . " x " . $height . "\n" or croak;
+
+#Sept 17, 2013 grid was not square
+#so this broke...
+#
+#it is 16 wide by 15 high
+#
+#lay some dots around the top and left
+for my $i (0 .. $height) {
+    $matrix[$i][0] = q{.};
+}
+
+for my $i (0 .. $width) {
+    $matrix[0][$i] = q{.};
+}
+
+#read in and drop into the matrix the
+#dots and dashes that indicate clues
+#and blanks
+my $char_cnt = 0;
+for ( my $i = 1; $i < $height + 1; $i++ ) {
+    for ( my $j = 1; $j < $width + 1; $j++ ) {
+        $matrix[$i][$j] = substr $grid, $char_cnt, 1;
+        $char_cnt++;
+    }
+}
+
+if ($DEBUG) {
+    print "Here is is the grid matrix..........\n"          or croak;
+    print " -- with the exterior buffer on top and left.\n" or croak;
+    for my $i (0 .. $height) {
+        for my $j (0 .. $width) {
+            print $matrix[$i][$j] or croak;
+        }
+        print "\n" or croak;
+    }
+}
+
+my $str      = q{};
+my $char     = q{};
+my $line_cnt = 0;
+my @strings  = ();
+
+$offset = $offset + $squares;
+Readonly my $HDR_STRINGS => 4;
+
+#print $offset, " == offset just before the clue strings\n" or croak;
+while ( $line_cnt < $num_clues + $HDR_STRINGS ) {
+    $char = substr $document, $offset, 1;
+    if ( $char eq qq{\0} ) {
+        push @strings, $str;
+
+        #print $line_cnt + 1, "-- ", $str, "\n" or croak;
+        $str = q{};
+        $line_cnt++;
+
+        #print $line_cnt, " == line_cnt\n" or croak;
+    }
+    else {
+        $str .= $char;
+    }
+    $offset++;
+}
+
+
+
+my $title = shift @strings;
+print $title, "\n" or croak;
+my $day = get_day_from($title);
+print $day, " == day\n";
+my $theme = q{};
+if ($day eq 'Sunday') {
+    $theme = get_sunday_theme($title);
+    $title = get_sunday_title($title);
+}
+
+my $author = shift @strings;
+print $author, "\n" or croak;
+
+my $copyright = shift @strings;
+print $copyright, "\n\n" or croak;
+
+my $num_strings = @strings;
+
+print "Num clue strings == $num_strings\n" or croak;
+
+#the last string provided, if there is one, will be a 'note'
+my $note = q{};
+if ( $num_strings - $num_clues ) {
+    $note = pop @strings;
+
+    #chop off the terminating null char
+    chop $note;
+}
+

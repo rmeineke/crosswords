@@ -1,0 +1,140 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Carp;
+
+use Crosswords qw(
+    get_output_file_name
+    check_for_check_string
+    get_day_from_title
+    get_sunday_theme
+    get_sunday_title
+    get_puzzle_width
+    get_puzzle_height
+    get_number_of_clues
+    get_document
+    get_solution
+    get_grid
+    get_clue_string_array
+    get_title
+    get_author
+    get_copyright
+    get_note
+    get_circles
+    get_rebus
+    generate_sunday_puzzle
+    generate_daily_puzzle
+);
+
+use English qw( -no_match_vars );
+
+use Readonly;
+
+use Benchmark;
+
+use Getopt::Long;
+
+our $VERSION = 0.00003;
+
+my $start_time = Benchmark->new;
+
+my $DEBUG = 0;
+my $SOLVE = 0;
+my $HINT  = 0;
+GetOptions(
+    's' => \$SOLVE,
+    'd' => \$DEBUG,
+    'h' => \$HINT
+) or croak "Incorrect usage!\n";
+
+# check to see if a filename argument
+# was supplied
+if ( $#ARGV != 0 ) {
+    print "Usage:\tx.pl filename\n" or croak;
+    print "\tx.pl Aug2613.puz\n\n"  or croak;
+    exit 0;
+}
+my $file = $ARGV[0];
+
+#check for existence of the file
+if ( !-e $file ) {
+    print "File ($file) not found\n" or croak;
+    exit 0;
+}
+
+my $file_out = q{};
+if ( $file =~ m{.*[.]puz}ixms ) {
+    $file_out = get_output_file_name($file);
+}
+else {
+    print "File ($file) may not be a .puz file\n" or croak;
+    exit 0;
+}
+unlink $file_out;
+
+my $document        = get_document($file);
+my $document_length = length $document;
+
+my $check_str = check_for_check_string($document);
+if ( !$check_str ) {
+    print "\nThere seems to be an issue with\n" or croak;
+    print "this file .... \n\n\n"               or croak;
+    exit 0;
+}
+
+my $width = get_puzzle_width($document);
+
+my $height = get_puzzle_height($document);
+
+my $squares = $width * $height;
+
+my $num_clues = get_number_of_clues($document);
+
+my $solution = get_solution( $document, $squares );
+
+my $grid = get_grid( $document, $squares );
+
+my @clue_string_array
+    = get_clue_string_array( $document, $squares, $num_clues );
+
+my $title = get_title( \@clue_string_array );
+
+my $day = get_day_from_title($title);
+
+my $author = get_author( \@clue_string_array );
+
+my $copyright = get_copyright( \@clue_string_array );
+
+my $num_strings = @clue_string_array;
+
+my $note = get_note( \@clue_string_array, $num_strings, $num_clues );
+
+my %circles = get_circles($document);
+
+my %rebus = get_rebus($document);
+
+if ( $day eq 'Sunday' ) {
+    generate_sunday_puzzle( { width => $width } );
+}
+else {
+    generate_daily_puzzle(
+        {   solve     => $SOLVE,
+            debug     => $DEBUG,
+            hint      => $HINT,
+            width     => $width,
+            height    => $height,
+            num_clues => $num_clues,
+            solution  => $solution,
+            grid      => $grid,
+        }
+    );
+}
+
+my $end_time = Benchmark->new;
+my $timer_diff = timediff( $end_time, $start_time );
+print "\n\n" or croak;
+print timestr( $timer_diff, 'all' ) or croak;
+print "\n\n" or croak;
+exit;

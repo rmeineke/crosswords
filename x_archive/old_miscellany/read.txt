@@ -1,0 +1,33 @@
+
+#!/usr/bin/perl -w
+use IO::Socket;
+$remote = IO::Socket::INET->new(
+     Proto    => "tcp",
+     PeerAddr => "server",
+     PeerPort => "1234",
+) ;
+unless ($remote) { die "cannot connect to remote" }
+$remote->autoflush(1);
+
+binmode $remote;
+
+my $buffer;
+my $numBytesToRead = 1;
+my $bytesRead;
+my $readcount = 0;
+
+while ($bytesRead = read($remote, $buffer, $numBytesToRead))
+{
+   $readcount++;
+   print $readcount;
+   for (my $i = 0; $i < $bytesRead; $i++)
+   {
+       my $byte = substr($buffer,$i,1);
+       print "\t".ord($byte);
+       print "\t$byte" if ord($byte) > 26;
+       print "\n";
+   }
+}
+print "Read Error: $!\n" unless defined($bytesRead);
+
+close $remote;
